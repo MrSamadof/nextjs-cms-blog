@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+export const words = ['example'] // let → const
+export const imageAdjust = (url: string) => url // let → const
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -11,14 +13,14 @@ export function getReadingTime(content: string) {
 	let images = 0
 	const regex = /\w/
 
-	let words = content.split(' ').filter(word => {
+	const words = content.split(' ').filter(word => {
 		if (word.includes('<img')) {
 			images += 1
 		}
 		return regex.test(word)
 	}).length
 
-	let imageAdjust = images * 4
+	const imageAdjust = images * 4
 	let imageSecs = 0
 	let imageFactor = 12
 
