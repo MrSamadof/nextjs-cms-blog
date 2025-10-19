@@ -9,13 +9,12 @@ import { cn } from '@/lib/utils'
 
 function Navbar() {
 	const pathName = usePathname()
-	console.log(pathName)
 	return (
 		<div className='h-[10vh] backdrop-blur-sm border-b fixed z-40 inset-0 bg-background'>
 			<div className='container max-w-6xl mx-auto h-[10vh] w-full flex items-center justify-between'>
 				{/* LOGO */}
 				<Link href={'/'}>
-					<h1 className='text-4xl font-semibold'>SamoDev</h1>
+					<h1 className='text-4xl font-createRound'>SamoDev</h1>
 				</Link>
 				{/* HEADERS */}
 				<div className='gap-2 hidden md:flex'>

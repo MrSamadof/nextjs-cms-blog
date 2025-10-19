@@ -1,9 +1,17 @@
 import BlogCard from '@/components/cards/blog'
-import { blogs } from '@/constants'
+import { getBlogs } from '@/service/blog.service'
 import { Dot, Home } from 'lucide-react'
+import { Metadata } from 'next'
 import Link from 'next/link'
 
-function Blogspage() {
+export const metadata: Metadata ={
+	title: 'All blogs'
+}
+
+ async function Blogspage() {
+
+	const blogs = await getBlogs()
+
 	return (
 		<div className='max-w-6xl mx-auto'>
 			
