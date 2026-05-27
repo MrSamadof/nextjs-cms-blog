@@ -1,0 +1,22 @@
+name: RSS Agent
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install feedparser anthropic requests python-dotenv
+      - name: Run RSS Agent
+        env:
+          NEXT_PUBLIC_GRAPHCMS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_GRAPHCMS_ENDPOINT }}
+          HYGRAPH_WRITE_TOKEN: ${{ secrets.HYGRAPH_WRITE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python agents/rss_agent.py
