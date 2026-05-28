@@ -50,6 +50,20 @@ def fetch_categories() -> list:
     return response.json().get("data", {}).get("categories", [])
 
 
+def fetch_tags() -> list:
+    query = "{ tags { id name slug } }"
+    response = requests.post(
+        GRAPHCMS_ENDPOINT,
+        json={"query": query},
+        headers={
+            "Authorization": f"Bearer {HYGRAPH_WRITE_TOKEN}",
+            "Content-Type": "application/json",
+        },
+    )
+    response.raise_for_status()
+    return response.json().get("data", {}).get("tags", [])
+
+
 def generate_slug(title: str) -> str:
     slug = title.lower()
     slug = slug.encode("ascii", "ignore").decode("ascii")
@@ -118,12 +132,19 @@ def html_to_richtext_ast(html: str) -> dict:
     return {"children": nodes}
 
 
-def analyze_article(title: str, full_text: str, categories: list) -> dict:
+def analyze_article(title: str, full_text: str, categories: list, tags: list) -> dict:
     category_names = [c["name"] for c in categories]
+    tag_names = [t["name"] for t in tags]
+
     category_hint = (
         f"\nAvailable categories: {json.dumps(category_names)}\n"
         "Pick the single best matching category name exactly as written, or null if none fit well."
         if category_names else ""
+    )
+    tag_hint = (
+        f"\nAvailable tags: {json.dumps(tag_names)}\n"
+        "Pick up to 3 matching tag names exactly as written. Return as a JSON array, e.g. [\"AI\", \"OpenAI\"]. Empty array [] if none fit."
+        if tag_names else ""
     )
 
     # Call 1: metadata — small, clean JSON with no embedded HTML
@@ -132,6 +153,7 @@ def analyze_article(title: str, full_text: str, categories: list) -> dict:
 Title: {title}
 Article text: {full_text}
 {category_hint}
+{tag_hint}
 
 Return exactly this structure:
 {{
@@ -142,7 +164,8 @@ Return exactly this structure:
   "canTest": <true | false>,
   "actionSuggestion": "<1-2 sentence actionable suggestion in Uzbek>",
   "aiTool": "<Claude | GPT | Gemini | Other>",
-  "categoryName": "<exact category name from the list above, or null>"
+  "categoryName": "<exact category name from the list above, or null>",
+  "tagNames": ["<exact tag name>", ...]
 }}
 
 Rules:
@@ -151,6 +174,7 @@ Rules:
 - canTest = true if a tool, model, or feature is available to try
 - aiTool: Claude = Anthropic content, GPT = OpenAI/ChatGPT content, Gemini = Google content, Other = anything else
 - categoryName: only use a name from the provided list; null if no category fits
+- tagNames: only use names from the provided list; empty array [] if none fit; max 3
 """
 
     meta_msg = client.messages.create(
@@ -229,8 +253,16 @@ def publish_blog(blog_id: str) -> dict:
 
 def send_to_hygraph(article: dict) -> dict:
     category_slug = article.get("categorySlug")
+    tag_slugs = article.get("tagSlugs") or []
+
     cat_var_decl = "\n      $categorySlug: String" if category_slug else ""
     cat_field = "\n        category: { connect: { slug: $categorySlug } }" if category_slug else ""
+
+    if tag_slugs:
+        connects = ", ".join(f'{{ slug: "{s}" }}' for s in tag_slugs)
+        tag_field = f"\n        tag: {{ connect: [{connects}] }}"
+    else:
+        tag_field = ""
 
     mutation = """
     mutation CreateBlog(
@@ -259,7 +291,7 @@ def send_to_hygraph(article: dict) -> dict:
         canTest: $canTest
         archive: $archive
         slug: $slug
-        content: $content%s
+        content: $content%s%s
         author: { connect: { id: "%s" } }
         image: { connect: { id: "%s" } }
       }) {
@@ -268,7 +300,7 @@ def send_to_hygraph(article: dict) -> dict:
         slug
       }
     }
-    """ % (cat_var_decl, cat_field, AUTHOR_ID, DEFAULT_IMAGE_ID)
+    """ % (cat_var_decl, cat_field, tag_field, AUTHOR_ID, DEFAULT_IMAGE_ID)
 
     variables = {
         "title": article["title"],
@@ -302,7 +334,7 @@ def send_to_hygraph(article: dict) -> dict:
     return response.json()
 
 
-def process_feed(feed_url: str, categories: list):
+def process_feed(feed_url: str, categories: list, tags: list):
     print(f"\nFetching: {feed_url}")
     feed = feedparser.parse(feed_url)
 
@@ -337,7 +369,7 @@ def process_feed(feed_url: str, categories: list):
         print(f"  Analyzing: {title[:70]}...")
 
         try:
-            analysis = analyze_article(title, full_text, categories)
+            analysis = analyze_article(title, full_text, categories, tags)
         except Exception as e:
             print(f"  Claude error: {e}")
             continue
@@ -361,6 +393,19 @@ def process_feed(feed_url: str, categories: list):
             else:
                 print(f"  Category not matched: {category_name!r} (no exact match in list)")
 
+        # Resolve tag slugs from Claude's returned names
+        tag_slugs = []
+        for tag_name in (analysis.get("tagNames") or [])[:3]:
+            match = next(
+                (t for t in tags if t["name"].lower() == tag_name.lower()),
+                None,
+            )
+            if match:
+                tag_slugs.append(match["slug"])
+                print(f"  Tag matched: {match['name']} -> {match['slug']}")
+            else:
+                print(f"  Tag not matched: {tag_name!r} (no exact match in list)")
+
         article = {
             "title": analysis.get("titleUz", title),
             "description": analysis.get("descriptionUz", full_text[:200]),
@@ -375,6 +420,7 @@ def process_feed(feed_url: str, categories: list):
             "slug": slug,
             "content": content_ast,
             "categorySlug": category_slug,
+            "tagSlugs": tag_slugs,
         }
         article["importanceLevel"] = article["importanceLevel"].lower()
         article["postStatus"] = article["postStatus"].lower()
@@ -404,8 +450,11 @@ def main():
     categories = fetch_categories()
     print(f"Loaded {len(categories)} categories: {[c['name'] for c in categories]}")
 
+    tags = fetch_tags()
+    print(f"Loaded {len(tags)} tags: {[t['name'] for t in tags]}")
+
     for feed_url in RSS_FEEDS:
-        process_feed(feed_url, categories)
+        process_feed(feed_url, categories, tags)
 
     print("\nDone.")
 
