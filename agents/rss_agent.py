@@ -134,6 +134,7 @@ def send_to_hygraph(article: dict) -> dict:
       $postStatus: PostStatus = new
       $canLearn: Boolean!
       $canTest: Boolean!
+      $archive: Boolean
       $slug: String!
     ) {
       createBlog(data: {
@@ -146,6 +147,7 @@ def send_to_hygraph(article: dict) -> dict:
         postStatus: $postStatus
         canLearn: $canLearn
         canTest: $canTest
+        archive: $archive
         slug: $slug
         author: { connect: { id: "%s" } }
         image: { connect: { id: "%s" } }
@@ -219,6 +221,7 @@ def process_feed(feed_url: str):
             "postStatus": "NEW",
             "canLearn": analysis.get("canLearn", False),
             "canTest": analysis.get("canTest", False),
+            "archive": False,
             "slug": slug,
         }
         article["importanceLevel"] = article["importanceLevel"].lower()
