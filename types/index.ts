@@ -11,14 +11,14 @@ export interface IArchivedBlog{
 export interface IBlog {
 	title: string
 	description: string
-	author: IAuthor
-	category: ICategoryAndTags
-	tag: ICategoryAndTags
-	image: {url: string}
+	author: IAuthor | null
+	category: ICategoryAndTags | null
+	tag: ICategoryAndTags | null
+	image: { url: string } | null
 	createdAt: string
-	content: {html: string}
+	content: { html: string } | null
 	slug: string
-
+	archive: boolean | null
 }
 
 export interface IAuthor{
