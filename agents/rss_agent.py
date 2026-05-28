@@ -105,7 +105,8 @@ def html_to_richtext_ast(html: str) -> dict:
 
 
 def analyze_article(title: str, full_text: str) -> dict:
-    prompt = f"""You are an AI news analyst writing for an Uzbek tech blog. Analyze the article below and return ONLY a valid JSON object — no markdown, no explanation.
+    # Call 1: metadata — small, clean JSON with no embedded HTML
+    meta_prompt = f"""You are an AI news analyst. Analyze the article below and return ONLY a valid JSON object — no markdown, no explanation, no extra text.
 
 Title: {title}
 Article text: {full_text}
@@ -118,8 +119,7 @@ Return exactly this structure:
   "canLearn": <true | false>,
   "canTest": <true | false>,
   "actionSuggestion": "<1-2 sentence actionable suggestion in Uzbek>",
-  "aiTool": "<Claude | GPT | Gemini | Other>",
-  "contentHtml": "<full Uzbek article, 400-600 words, using only <p>, <h2>, <ul><li> tags>"
+  "aiTool": "<Claude | GPT | Gemini | Other>"
 }}
 
 Rules:
@@ -127,19 +127,36 @@ Rules:
 - canLearn = true if article teaches concepts or techniques
 - canTest = true if a tool, model, or feature is available to try
 - aiTool: Claude = Anthropic content, GPT = OpenAI/ChatGPT content, Gemini = Google content, Other = anything else
-- contentHtml: write a full informative article in Uzbek based on the source text. Use <h2> for section headings, <p> for paragraphs, <ul><li> for lists. 400-600 words. No inline styles, classes, or other HTML tags.
 """
 
-    message = client.messages.create(
+    meta_msg = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
-        messages=[{"role": "user", "content": prompt}],
+        max_tokens=1024,
+        messages=[{"role": "user", "content": meta_prompt}],
     )
-
-    raw = message.content[0].text.strip()
+    raw = meta_msg.content[0].text.strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
-    return json.loads(raw)
+    result = json.loads(raw)
+
+    # Call 2: full article HTML — returned as raw HTML, not embedded in JSON
+    content_prompt = f"""You are a tech journalist writing for an Uzbek-language blog. Based on the article below, write a full informative article in Uzbek (400-600 words).
+
+Title: {title}
+Article text: {full_text}
+
+Output ONLY the HTML article body. Use only these tags: <h2>, <p>, <ul>, <li>.
+No DOCTYPE, no <html>/<body> wrapper, no inline styles, no classes, no markdown.
+Start directly with the first tag.
+"""
+
+    content_msg = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": content_prompt}],
+    )
+    result["contentHtml"] = content_msg.content[0].text.strip()
+    return result
 
 
 def check_exists(source_url: str) -> bool:
