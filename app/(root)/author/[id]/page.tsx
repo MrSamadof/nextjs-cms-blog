@@ -3,9 +3,10 @@ import { getDetaileddAuthor } from '@/service/author.service'
 import Image from 'next/image'
 
 
- async function Page({params}: {params: {id: string}}) {
+ async function Page({params}: {params: Promise<{id: string}>}) {
 
-	const author = await getDetaileddAuthor(params.id)
+	const { id } = await params
+	const author = await getDetaileddAuthor(id)
 
 	return (
 		<div className='max-w-6xl mx-auto pt-36' >

@@ -17,8 +17,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ShareBtns from '../../_components/share-btns'
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-	const blog = await getDetailedBlog(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+	const { slug: metaSlug } = await params
+	const blog = await getDetailedBlog(metaSlug)
 
 	return {
 		title: blog.title,
@@ -31,9 +32,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 
 
- async function SlugPage({ params }: { params: { slug: string } }) {
+ async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
 
-		const blog = await getDetailedBlog(params.slug)
+		const { slug } = await params
+		const blog = await getDetailedBlog(slug)
 
 
 
