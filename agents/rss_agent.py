@@ -2,6 +2,7 @@ import os
 import re
 import json
 import hashlib
+import time
 
 import feedparser
 import anthropic
@@ -185,6 +186,7 @@ def process_feed(feed_url: str):
             print("  Skipping: missing title or URL")
             continue
 
+        time.sleep(1)
         if check_exists(source_url):
             print(f"  Skipping (already exists): {title}")
             continue
@@ -218,6 +220,7 @@ def process_feed(feed_url: str):
         article["postStatus"] = article["postStatus"].lower()
 
         try:
+            time.sleep(1)
             result = send_to_hygraph(article)
             if "errors" in result:
                 print(f"  Hygraph error: {result['errors']}")
@@ -226,6 +229,7 @@ def process_feed(feed_url: str):
                 print(f"  Created: id={created.get('id')}  slug={created.get('slug')}")
                 blog_id = created.get("id")
                 if blog_id:
+                    time.sleep(1)
                     publish_blog(blog_id)
                     print(f"  Published: id={blog_id}")
         except Exception as e:
