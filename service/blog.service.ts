@@ -76,6 +76,13 @@ export const getDetailedBlog = cache(async (slug: string) => {
 					slug
 				}
 				title
+				description
+				importanceLevel
+				canLearn
+				canTest
+				actionSuggestion
+				aiTool
+				sourceUrl
 			}
 		}
 	`
