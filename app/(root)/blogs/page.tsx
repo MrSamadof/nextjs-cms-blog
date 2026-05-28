@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import BlogCard from '@/components/cards/blog'
 import { getBlogs } from '@/service/blog.service'
 import { Dot, Home } from 'lucide-react'

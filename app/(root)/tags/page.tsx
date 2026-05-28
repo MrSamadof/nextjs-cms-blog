@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import CategoriesTagsCard from '@/components/cards/categories-tags'
 import { getTags } from '@/service/tag.service'
 import { Dot, Home } from 'lucide-react'

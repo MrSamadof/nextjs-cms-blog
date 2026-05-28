@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getArchiveBlogs } from '@/service/blog.service'
 import { format } from 'date-fns'
 import { Archive, Dot, Home } from 'lucide-react'
