@@ -32,6 +32,12 @@ export const getBlogs = async () => {
 					html
 				}
 				slug
+				importanceLevel
+				canLearn
+				canTest
+				actionSuggestion
+				aiTool
+				sourceUrl
 			}
 		}
 	`

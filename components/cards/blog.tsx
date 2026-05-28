@@ -1,7 +1,7 @@
 'use client'
 
 import { IBlog } from '@/types'
-import { CalendarDays, Clock, Dot, Layers2, Minus, Tag } from 'lucide-react'
+import { CalendarDays, Clock, Dot, ExternalLink, Layers2, Minus, Tag } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '../ui/badge'
@@ -10,11 +10,19 @@ import { format } from 'date-fns'
 
 const FALLBACK_IMAGE = 'https://us-west-2.graphassets.com/cmgfe2kkj071x07n6dup74m4b/cmgpavuhj7r2907n8bedqoubp'
 
+const IMPORTANCE_CONFIG = {
+	high:   { label: '🔴 HIGH',   className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+	medium: { label: '🟡 MEDIUM', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+	low:    { label: '🟢 LOW',    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+}
+
 interface Props extends IBlog {
 	isVertical?: boolean
 }
 
 function BlogCard(blog: Props) {
+
+	const importance = blog.importanceLevel ? IMPORTANCE_CONFIG[blog.importanceLevel] : null
 
 	return (
 		<div
@@ -37,7 +45,6 @@ function BlogCard(blog: Props) {
 
 			<div className='flex flex-col space-y-4'>
 				{/* Time Info */}
-
 				<Link href={`/blogs/${blog.slug}`} className='flex flex-col space-y-4'>
 					<div className='flex items-center gap-4'>
 						<div className='flex items-center gap-2'>
@@ -62,7 +69,38 @@ function BlogCard(blog: Props) {
 					</p>
 				</Link>
 
-				{/* Author + meta */}
+				{/* Action suggestion */}
+				{blog.actionSuggestion && (
+					<p className='text-sm italic text-muted-foreground border-l-2 border-muted pl-3'>
+						{blog.actionSuggestion}
+					</p>
+				)}
+
+				{/* Meta badges */}
+				<div className='flex flex-wrap items-center gap-2'>
+					{importance && (
+						<span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', importance.className)}>
+							{importance.label}
+						</span>
+					)}
+					{blog.aiTool && (
+						<span className='text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground'>
+							{blog.aiTool}
+						</span>
+					)}
+					{blog.canLearn && (
+						<span className='text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'>
+							O&apos;rganish mumkin
+						</span>
+					)}
+					{blog.canTest && (
+						<span className='text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'>
+							Sinab ko&apos;rish
+						</span>
+					)}
+				</div>
+
+				{/* Author + tag/category */}
 				<div className='flex items-center gap-4'>
 					{blog.author && (
 						<div className='flex items-center gap-2'>
@@ -101,6 +139,19 @@ function BlogCard(blog: Props) {
 						</>
 					)}
 				</div>
+
+				{/* Source link */}
+				{blog.sourceUrl && (
+					<a
+						href={blog.sourceUrl}
+						target='_blank'
+						rel='noopener noreferrer'
+						className='flex items-center gap-1 text-sm text-muted-foreground hover:text-blue-500 transition-colors w-fit'
+					>
+						Asl maqola
+						<ExternalLink className='w-3 h-3' />
+					</a>
+				)}
 			</div>
 		</div>
 	)

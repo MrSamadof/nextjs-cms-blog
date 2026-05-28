@@ -19,6 +19,12 @@ export interface IBlog {
 	content: { html: string } | null
 	slug: string
 	archive: boolean | null
+	importanceLevel: 'low' | 'medium' | 'high' | null
+	canLearn: boolean | null
+	canTest: boolean | null
+	actionSuggestion: string | null
+	aiTool: string | null
+	sourceUrl: string | null
 }
 
 export interface IAuthor{
