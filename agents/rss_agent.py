@@ -258,11 +258,9 @@ def send_to_hygraph(article: dict) -> dict:
     cat_var_decl = "\n      $categorySlug: String" if category_slug else ""
     cat_field = "\n        category: { connect: { slug: $categorySlug } }" if category_slug else ""
 
-    if tag_slugs:
-        connects = ", ".join(f'{{ slug: "{s}" }}' for s in tag_slugs)
-        tag_field = f"\n        tag: {{ connect: [{connects}] }}"
-    else:
-        tag_field = ""
+    # tag is a single-relation field in Hygraph — use first matched slug only
+    tag_slug = tag_slugs[0] if tag_slugs else None
+    tag_field = f'\n        tag: {{ connect: {{ slug: "{tag_slug}" }} }}' if tag_slug else ""
 
     mutation = """
     mutation CreateBlog(
