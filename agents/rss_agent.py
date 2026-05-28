@@ -15,6 +15,9 @@ GRAPHCMS_ENDPOINT = os.getenv("NEXT_PUBLIC_GRAPHCMS_ENDPOINT")
 HYGRAPH_WRITE_TOKEN = os.getenv("HYGRAPH_WRITE_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
+AUTHOR_ID = "cmppeedszsn6207myqv1mni6i"       # SamoDev AI author node
+DEFAULT_IMAGE_ID = "cmgpavuhj7r2807n8a5hpt1dh"  # default blog cover asset
+
 RSS_FEEDS = [
     "https://www.anthropic.com/rss.xml",
     "https://openai.com/blog/rss.xml",
@@ -144,13 +147,15 @@ def send_to_hygraph(article: dict) -> dict:
         canLearn: $canLearn
         canTest: $canTest
         slug: $slug
+        author: { connect: { id: "%s" } }
+        image: { connect: { id: "%s" } }
       }) {
         id
         title
         slug
       }
     }
-    """
+    """ % (AUTHOR_ID, DEFAULT_IMAGE_ID)
     print("MUTATION:", mutation)
     print("VARIABLES:", json.dumps(article, indent=2))
     response = requests.post(
