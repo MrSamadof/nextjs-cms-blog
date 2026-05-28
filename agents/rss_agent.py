@@ -36,6 +36,20 @@ BROWSER_HEADERS = {
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
+def fetch_categories() -> list:
+    query = "{ categories { id name slug } }"
+    response = requests.post(
+        GRAPHCMS_ENDPOINT,
+        json={"query": query},
+        headers={
+            "Authorization": f"Bearer {HYGRAPH_WRITE_TOKEN}",
+            "Content-Type": "application/json",
+        },
+    )
+    response.raise_for_status()
+    return response.json().get("data", {}).get("categories", [])
+
+
 def generate_slug(title: str) -> str:
     slug = title.lower()
     slug = slug.encode("ascii", "ignore").decode("ascii")
@@ -104,12 +118,20 @@ def html_to_richtext_ast(html: str) -> dict:
     return {"children": nodes}
 
 
-def analyze_article(title: str, full_text: str) -> dict:
+def analyze_article(title: str, full_text: str, categories: list) -> dict:
+    category_names = [c["name"] for c in categories]
+    category_hint = (
+        f"\nAvailable categories: {json.dumps(category_names)}\n"
+        "Pick the single best matching category name exactly as written, or null if none fit well."
+        if category_names else ""
+    )
+
     # Call 1: metadata — small, clean JSON with no embedded HTML
     meta_prompt = f"""You are an AI news analyst. Analyze the article below and return ONLY a valid JSON object — no markdown, no explanation, no extra text.
 
 Title: {title}
 Article text: {full_text}
+{category_hint}
 
 Return exactly this structure:
 {{
@@ -119,7 +141,8 @@ Return exactly this structure:
   "canLearn": <true | false>,
   "canTest": <true | false>,
   "actionSuggestion": "<1-2 sentence actionable suggestion in Uzbek>",
-  "aiTool": "<Claude | GPT | Gemini | Other>"
+  "aiTool": "<Claude | GPT | Gemini | Other>",
+  "categoryName": "<exact category name from the list above, or null>"
 }}
 
 Rules:
@@ -127,6 +150,7 @@ Rules:
 - canLearn = true if article teaches concepts or techniques
 - canTest = true if a tool, model, or feature is available to try
 - aiTool: Claude = Anthropic content, GPT = OpenAI/ChatGPT content, Gemini = Google content, Other = anything else
+- categoryName: only use a name from the provided list; null if no category fits
 """
 
     meta_msg = client.messages.create(
@@ -204,6 +228,10 @@ def publish_blog(blog_id: str) -> dict:
 
 
 def send_to_hygraph(article: dict) -> dict:
+    category_slug = article.get("categorySlug")
+    cat_var_decl = "\n      $categorySlug: String" if category_slug else ""
+    cat_field = "\n        category: { connect: { slug: $categorySlug } }" if category_slug else ""
+
     mutation = """
     mutation CreateBlog(
       $title: String!
@@ -216,7 +244,7 @@ def send_to_hygraph(article: dict) -> dict:
       $canLearn: Boolean!
       $canTest: Boolean!
       $archive: Boolean
-      $slug: String!
+      $slug: String!%s
       $content: RichTextAST
     ) {
       createBlog(data: {
@@ -231,7 +259,7 @@ def send_to_hygraph(article: dict) -> dict:
         canTest: $canTest
         archive: $archive
         slug: $slug
-        content: $content
+        content: $content%s
         author: { connect: { id: "%s" } }
         image: { connect: { id: "%s" } }
       }) {
@@ -240,10 +268,28 @@ def send_to_hygraph(article: dict) -> dict:
         slug
       }
     }
-    """ % (AUTHOR_ID, DEFAULT_IMAGE_ID)
+    """ % (cat_var_decl, cat_field, AUTHOR_ID, DEFAULT_IMAGE_ID)
+
+    variables = {
+        "title": article["title"],
+        "description": article["description"],
+        "sourceUrl": article["sourceUrl"],
+        "aiTool": article["aiTool"],
+        "actionSuggestion": article["actionSuggestion"],
+        "importanceLevel": article["importanceLevel"],
+        "postStatus": article["postStatus"],
+        "canLearn": article["canLearn"],
+        "canTest": article["canTest"],
+        "archive": article["archive"],
+        "slug": article["slug"],
+        "content": article["content"],
+    }
+    if category_slug:
+        variables["categorySlug"] = category_slug
+
     response = requests.post(
         GRAPHCMS_ENDPOINT,
-        json={"query": mutation, "variables": article},
+        json={"query": mutation, "variables": variables},
         headers={
             "Authorization": f"Bearer {HYGRAPH_WRITE_TOKEN}",
             "Content-Type": "application/json",
@@ -256,7 +302,7 @@ def send_to_hygraph(article: dict) -> dict:
     return response.json()
 
 
-def process_feed(feed_url: str):
+def process_feed(feed_url: str, categories: list):
     print(f"\nFetching: {feed_url}")
     feed = feedparser.parse(feed_url)
 
@@ -291,7 +337,7 @@ def process_feed(feed_url: str):
         print(f"  Analyzing: {title[:70]}...")
 
         try:
-            analysis = analyze_article(title, full_text)
+            analysis = analyze_article(title, full_text, categories)
         except Exception as e:
             print(f"  Claude error: {e}")
             continue
@@ -300,6 +346,20 @@ def process_feed(feed_url: str):
 
         content_html = analysis.get("contentHtml", "")
         content_ast = html_to_richtext_ast(content_html) if content_html else None
+
+        # Resolve category slug from Claude's returned name
+        category_name = analysis.get("categoryName")
+        category_slug = None
+        if category_name:
+            match = next(
+                (c for c in categories if c["name"].lower() == category_name.lower()),
+                None,
+            )
+            if match:
+                category_slug = match["slug"]
+                print(f"  Category matched: {match['name']} -> {category_slug}")
+            else:
+                print(f"  Category not matched: {category_name!r} (no exact match in list)")
 
         article = {
             "title": analysis.get("titleUz", title),
@@ -314,6 +374,7 @@ def process_feed(feed_url: str):
             "archive": False,
             "slug": slug,
             "content": content_ast,
+            "categorySlug": category_slug,
         }
         article["importanceLevel"] = article["importanceLevel"].lower()
         article["postStatus"] = article["postStatus"].lower()
@@ -340,8 +401,11 @@ def main():
     if not all([GRAPHCMS_ENDPOINT, HYGRAPH_WRITE_TOKEN, ANTHROPIC_API_KEY]):
         raise EnvironmentError("Missing one or more required environment variables.")
 
+    categories = fetch_categories()
+    print(f"Loaded {len(categories)} categories: {[c['name'] for c in categories]}")
+
     for feed_url in RSS_FEEDS:
-        process_feed(feed_url)
+        process_feed(feed_url, categories)
 
     print("\nDone.")
 
