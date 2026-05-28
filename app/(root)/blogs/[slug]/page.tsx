@@ -6,11 +6,18 @@ import {
 	ArrowUpRight,
 	CalendarDays,
 	Clock,
+	ExternalLink,
 	Minus,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ShareBtns from '../../_components/share-btns'
+
+const IMPORTANCE_CONFIG = {
+	high:   { label: '🔴 HIGH',   className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+	medium: { label: '🟡 MEDIUM', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+	low:    { label: '🟢 LOW',    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+} as const
 
 const FALLBACK_IMAGE = 'https://us-west-2.graphassets.com/cmgfe2kkj071x07n6dup74m4b/cmgpavuhj7r2907n8bedqoubp'
 
@@ -70,6 +77,58 @@ async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
 				height={595}
 				className='mt-4 rounded-md'
 			/>
+
+			{/* AI metadata strip */}
+			{(blog.importanceLevel || blog.aiTool || blog.canLearn || blog.canTest || blog.actionSuggestion || blog.sourceUrl) && (
+				<div className='mt-6 flex flex-col gap-4'>
+					{/* Badges row */}
+					<div className='flex flex-wrap gap-2'>
+						{blog.importanceLevel && (() => {
+							const cfg = IMPORTANCE_CONFIG[blog.importanceLevel!]
+							return (
+								<span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.className}`}>
+									{cfg.label}
+								</span>
+							)
+						})()}
+						{blog.aiTool && (
+							<span className='text-xs font-medium px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground'>
+								{blog.aiTool}
+							</span>
+						)}
+						{blog.canLearn && (
+							<span className='text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'>
+								O&apos;rganish mumkin
+							</span>
+						)}
+						{blog.canTest && (
+							<span className='text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'>
+								Sinab ko&apos;rish
+							</span>
+						)}
+					</div>
+
+					{/* Action suggestion info box */}
+					{blog.actionSuggestion && (
+						<div className='rounded-md border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 px-4 py-3 text-sm text-blue-800 dark:text-blue-300 italic'>
+							{blog.actionSuggestion}
+						</div>
+					)}
+
+					{/* Source link */}
+					{blog.sourceUrl && (
+						<a
+							href={blog.sourceUrl}
+							target='_blank'
+							rel='noopener noreferrer'
+							className='flex items-center gap-1.5 text-sm text-muted-foreground hover:text-blue-500 transition-colors w-fit'
+						>
+							Asl maqola
+							<ExternalLink className='w-3.5 h-3.5' />
+						</a>
+					)}
+				</div>
+			)}
 
 			<div className='flex md:gap-12 max-md:flex-col-reverse mt-12 relative'>
 				<div className='flex flex-col space-y-3'>
