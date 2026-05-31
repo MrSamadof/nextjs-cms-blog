@@ -9,17 +9,14 @@ import { Input } from '@/components/ui/input'
 import { Loader2, Minus, Search } from 'lucide-react'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Badge } from '@/components/ui/badge'
-import Link from 'next/link'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
-import { IBlog, ICategoryAndTags } from '@/types'
-import { getSearchBlogs } from '@/service/blog.service'
-import { getTags } from '@/service/tag.service'
+import { ChangeEvent, useEffect, useState } from 'react'
+import { IBlog } from '@/types'
+import { getSearchBlogs, getBlogs } from '@/service/blog.service'
 import { useRouter } from 'next/navigation'
 import { debounce } from 'lodash'
 import SearchCard from '@/components/cards/search'
 import { Separator } from '@/components/ui/separator'
 
-// Filter keys must match BlogFeed's filter system
 const FILTER_CATEGORIES = [
 	{ label: 'Yuqori signal', filterKey: 'high' },
 	{ label: "O'rganish",     filterKey: 'learn' },
@@ -30,17 +27,28 @@ const FILTER_CATEGORIES = [
 	{ label: 'Other',         filterKey: 'Other' },
 ]
 
+type TagEntry = { name: string; slug: string }
+
 function Globalsearch() {
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [blogs, setBlogs] = useState<IBlog[]>([])
-	const [tags, setTags] = useState<ICategoryAndTags[]>([])
+	const [realTags, setRealTags] = useState<TagEntry[]>([])
 
+	// Extract unique tags from actual blog posts
 	useEffect(() => {
-		getTags()
-			.then(all => setTags(all.filter(t => t.blogs && t.blogs.length > 0)))
-			.catch(() => {})
+		getBlogs().then(allBlogs => {
+			const seen = new Set<string>()
+			const tags: TagEntry[] = []
+			allBlogs.forEach(b => {
+				if (b.tag && !seen.has(b.tag.slug)) {
+					seen.add(b.tag.slug)
+					tags.push({ name: b.tag.name, slug: b.tag.slug })
+				}
+			})
+			setRealTags(tags)
+		}).catch(() => {})
 	}, [])
 
 	const handleSearch = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -107,18 +115,15 @@ function Globalsearch() {
 						<p className='text-2xl font-workSans'>Kategoriyalar bo&apos;yicha</p>
 						<div className='flex flex-wrap gap-2'>
 							{FILTER_CATEGORIES.map(item => (
-								<button
-									key={item.filterKey}
-									onClick={() => navigateToFilter(item.filterKey)}
-								>
+								<button key={item.filterKey} onClick={() => navigateToFilter(item.filterKey)}>
 									<Badge variant='secondary'>{item.label}</Badge>
 								</button>
 							))}
 						</div>
 					</div>
 
-					{/* Real tags from Hygraph */}
-					{tags.length > 0 && (
+					{/* Real tags from blog posts */}
+					{realTags.length > 0 && (
 						<div className='flex flex-col space-y-2 mt-4'>
 							<div className='flex items-center gap-2'>
 								<p className='text-2xl font-workSans'>Teglar bo&apos;yicha</p>
@@ -131,12 +136,9 @@ function Globalsearch() {
 								</button>
 							</div>
 							<div className='flex flex-wrap gap-2'>
-								{tags.map(item => (
-									<button
-										key={item.slug}
-										onClick={() => navigateToTag(item.slug)}
-									>
-										<Badge variant='secondary'>{item.name}</Badge>
+								{realTags.map(tag => (
+									<button key={tag.slug} onClick={() => navigateToTag(tag.slug)}>
+										<Badge variant='secondary'>{tag.name}</Badge>
 									</button>
 								))}
 							</div>
