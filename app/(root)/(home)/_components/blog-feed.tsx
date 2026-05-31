@@ -67,8 +67,8 @@ export default function BlogFeed({ blogs }: Props) {
             className={cn(
               'flex-shrink-0 font-mono text-xs px-3 py-1.5 rounded-full border transition-all duration-150',
               activeFilter === f.key
-                ? 'bg-green-500 text-zinc-950 border-green-500'
-                : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-zinc-200'
+                ? 'bg-green-500 text-white border-green-500'
+                : 'bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 border-gray-200 dark:border-zinc-700 hover:border-gray-400 hover:text-gray-900 dark:hover:border-zinc-500 dark:hover:text-zinc-200'
             )}
           >
             {f.label}

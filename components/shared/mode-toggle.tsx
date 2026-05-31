@@ -8,23 +8,31 @@ function ModeToggle() {
   const [mounted, setMounted] = useState(false)
   const { setTheme, resolvedTheme } = useTheme()
 
-  // Komponent mount bo'lgandan keyin mounted ni true qilish
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Agar hali mount bo'lmagan bo'lsa, hech narsa ko'rsatmaymiz
   if (!mounted) {
-    return null
+    return <div className='w-9 h-9' />
   }
 
   return resolvedTheme === 'dark' ? (
-    <Button size={'icon'} variant={'ghost'} onClick={() => setTheme('light')}>
-      <Sun />
+    <Button
+      size='icon'
+      variant='ghost'
+      onClick={() => setTheme('light')}
+      className='text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'
+    >
+      <Sun className='w-4 h-4' />
     </Button>
   ) : (
-    <Button size={'icon'} variant={'ghost'} onClick={() => setTheme('dark')}>
-      <Moon />
+    <Button
+      size='icon'
+      variant='ghost'
+      onClick={() => setTheme('dark')}
+      className='text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+    >
+      <Moon className='w-4 h-4' />
     </Button>
   )
 }

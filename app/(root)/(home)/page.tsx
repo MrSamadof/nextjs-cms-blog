@@ -54,22 +54,22 @@ export default async function HomePage() {
             <h1 className='font-createRound text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-zinc-100 leading-tight'>
               SamoDev
             </h1>
-            <p className='font-mono text-zinc-500 text-base tracking-widest uppercase'>
+            <p className='font-mono text-gray-500 dark:text-zinc-500 text-base tracking-widest uppercase'>
               Agents. Automation. Tools.
             </p>
-            <p className='font-workSans text-zinc-400 text-lg'>
+            <p className='font-workSans text-gray-500 dark:text-zinc-400 text-lg'>
               Curated AI signal, no noise.
             </p>
             <div className='flex flex-wrap gap-3 mt-2'>
               <Link
                 href='/blogs'
-                className='inline-flex items-center px-5 py-2.5 rounded-md bg-green-500 text-zinc-950 font-workSans font-semibold text-sm hover:bg-green-400 transition-colors'
+                className='inline-flex items-center px-5 py-2.5 rounded-md bg-green-600 dark:bg-green-500 text-white dark:text-zinc-950 font-workSans font-semibold text-sm hover:bg-green-700 dark:hover:bg-green-400 transition-colors'
               >
                 Barcha postlar
               </Link>
               <Link
                 href='/contact'
-                className='inline-flex items-center px-5 py-2.5 rounded-md border border-zinc-700 text-zinc-300 font-workSans text-sm hover:border-zinc-500 hover:text-zinc-100 transition-colors'
+                className='inline-flex items-center px-5 py-2.5 rounded-md border border-gray-300 dark:border-zinc-700 text-gray-600 dark:text-zinc-300 font-workSans text-sm hover:border-gray-400 dark:hover:border-zinc-500 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors'
               >
                 Obuna bo&apos;lish
               </Link>
@@ -77,8 +77,8 @@ export default async function HomePage() {
           </div>
 
           {/* Right — stats panel (desktop only) */}
-          <div className='hidden md:flex flex-col gap-3 bg-zinc-900 border border-zinc-800 rounded-md p-5 min-w-[220px] self-center'>
-            <p className='font-mono text-xs text-zinc-600 uppercase tracking-widest mb-1'>
+          <div className='hidden md:flex flex-col gap-3 bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-md p-5 min-w-[220px] self-center'>
+            <p className='font-mono text-xs text-gray-500 dark:text-zinc-600 uppercase tracking-widest mb-1'>
               Signal Stats
             </p>
             <StatRow label='Jami postlar' value={String(stats.total)} />
@@ -99,7 +99,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Stats Bar ──────────────────────────────── */}
-      <div className='bg-zinc-900 border-y border-zinc-800 py-3 px-4 overflow-x-auto'>
+      <div className='bg-gray-100 dark:bg-zinc-900 border-y border-gray-200 dark:border-zinc-800 py-3 px-4 overflow-x-auto'>
         <div className='max-w-6xl mx-auto flex items-center gap-6 font-mono text-xs whitespace-nowrap'>
           {statItems.map((item, i) => (
             <span
@@ -107,7 +107,7 @@ export default async function HomePage() {
               className='opacity-0 animate-[fadeIn_0.4s_ease_forwards]'
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <span className='text-zinc-600'>{item.label} </span>
+              <span className='text-gray-500 dark:text-zinc-600'>{item.label} </span>
               <span className={item.valueClass}>{item.value}</span>
             </span>
           ))}
@@ -134,10 +134,10 @@ function StatRow({
   return (
     <div className='flex items-center justify-between gap-4'>
       <span
-        className='font-mono text-xs text-zinc-600'
+        className='font-mono text-xs text-gray-500 dark:text-zinc-600'
         dangerouslySetInnerHTML={{ __html: label }}
       />
-      <span className={`font-mono text-xs ${valueClass ?? 'text-zinc-300'}`}>
+      <span className={`font-mono text-xs ${valueClass ?? 'text-gray-700 dark:text-zinc-300'}`}>
         {value}
       </span>
     </div>

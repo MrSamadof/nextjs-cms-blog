@@ -113,7 +113,7 @@ export const getSearchBlogs = async (title: string) => {
 export const getArchiveBlogs = async () => {
 	const query = gql`
 		query MyQuery {
-			blogs(first: 100, where: { archive: true }) {
+			blogs(first: 1000, orderBy: createdAt_DESC) {
 				title
 				createdAt
 				slug
