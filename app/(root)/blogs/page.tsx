@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { getBlogs } from '@/service/blog.service'
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import BlogFeed from '../(home)/_components/blog-feed'
 
 export const metadata: Metadata = {
@@ -29,7 +30,9 @@ async function BlogsPage() {
 				</div>
 
 				{/* Feed */}
-				<BlogFeed blogs={blogs} />
+				<Suspense fallback={<div className='font-mono text-sm text-zinc-500 py-8'>Yuklanmoqda...</div>}>
+					<BlogFeed blogs={blogs} />
+				</Suspense>
 			</div>
 		</div>
 	)

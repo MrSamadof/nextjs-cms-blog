@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { getBlogs } from '@/service/blog.service'
 import { IBlog } from '@/types'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import BlogFeed from './_components/blog-feed'
 
 function computeStats(blogs: IBlog[]) {
@@ -116,7 +117,9 @@ export default async function HomePage() {
 
       {/* ── Feed ───────────────────────────────────── */}
       <section className='max-w-6xl mx-auto px-4 pt-8 pb-20'>
-        <BlogFeed blogs={blogs} />
+        <Suspense fallback={<div className='font-mono text-sm text-zinc-500 py-8'>Yuklanmoqda...</div>}>
+          <BlogFeed blogs={blogs} />
+        </Suspense>
       </section>
     </div>
   )

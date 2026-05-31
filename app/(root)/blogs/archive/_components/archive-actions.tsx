@@ -40,10 +40,11 @@ export default function ArchiveActions({ groups }: ArchiveActionsProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id }),
 			})
-			if (!res.ok) throw new Error('Request failed')
+			const data = await res.json()
+			if (!res.ok) throw new Error(data.error ?? 'So\'rov muvaffaqiyatsiz')
 			router.refresh()
-		} catch {
-			alert("Xatolik yuz berdi")
+		} catch (err) {
+			alert(err instanceof Error ? err.message : "Xatolik yuz berdi")
 		} finally {
 			setDeletingId(null)
 		}
@@ -62,10 +63,11 @@ export default function ArchiveActions({ groups }: ArchiveActionsProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ deleteAll: true, ids: allIds }),
 			})
-			if (!res.ok) throw new Error('Request failed')
+			const data = await res.json()
+			if (!res.ok && res.status !== 207) throw new Error(data.error ?? 'So\'rov muvaffaqiyatsiz')
 			router.refresh()
-		} catch {
-			alert("Xatolik yuz berdi")
+		} catch (err) {
+			alert(err instanceof Error ? err.message : "Xatolik yuz berdi")
 		} finally {
 			setDeletingAll(false)
 		}
@@ -121,9 +123,9 @@ export default function ArchiveActions({ groups }: ArchiveActionsProps) {
 									onClick={() => handleDelete(item.id)}
 									disabled={deletingId === item.id || deletingAll}
 									aria-label={`O'chirish: ${item.title}`}
-									className='opacity-0 group-hover:opacity-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed'
+									className='opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed'
 								>
-									<Trash2 className='w-3.5 h-3.5 text-gray-300 dark:text-zinc-700 hover:text-red-500 dark:hover:text-red-400 transition-colors' />
+									<Trash2 className='w-3.5 h-3.5 text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-300 transition-colors' />
 								</button>
 							</div>
 						))}
