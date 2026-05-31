@@ -1,3 +1,4 @@
+// Runs daily at 00:00 UTC — deletes posts older than 30 days
 import { NextRequest, NextResponse } from 'next/server'
 
 const graphqlAPI = process.env.NEXT_PUBLIC_GRAPHCMS_ENDPOINT!
