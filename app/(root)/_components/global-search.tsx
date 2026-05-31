@@ -14,20 +14,27 @@ import Link from 'next/link'
 import { ChangeEvent, useEffect, useState } from 'react'
 import { IBlog, ICategoryAndTags } from '@/types'
 import { getSearchBlogs } from '@/service/blog.service'
-import { getCategories } from '@/service/category.service'
 import { getTags } from '@/service/tag.service'
 import { debounce } from 'lodash'
 import SearchCard from '@/components/cards/search'
 import { Separator } from '@/components/ui/separator'
 
+const FILTER_CATEGORIES = [
+	{ label: 'Yuqori signal', href: '/blogs' },
+	{ label: "O'rganish", href: '/blogs' },
+	{ label: "Sinab ko'rish", href: '/blogs' },
+	{ label: 'GPT', href: '/blogs' },
+	{ label: 'Gemini', href: '/blogs' },
+	{ label: 'Claude', href: '/blogs' },
+	{ label: 'Other', href: '/blogs' },
+]
+
 function Globalsearch() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [blogs, setBlogs] = useState<IBlog[]>([])
-	const [categories, setCategories] = useState<ICategoryAndTags[]>([])
 	const [tags, setTags] = useState<ICategoryAndTags[]>([])
 
 	useEffect(() => {
-		getCategories().then(setCategories).catch(() => {})
 		getTags().then(setTags).catch(() => {})
 	}, [])
 
@@ -78,28 +85,20 @@ function Globalsearch() {
 					</div>
 					{blogs.length ? <Separator className='mt-3' /> : null}
 
-					{categories.length > 0 && (
-						<div className='flex flex-col space-y-2 mt-4'>
-							<div className='flex items-center gap-2'>
-								<p className='text-2xl font-workSans'>Kategoriyalar bo&apos;yicha</p>
-								<Minus />
-								<Link href={'/categories'}>
-									<DrawerClose className='text-green-500 underline hover:opacity-90 text-sm'>
-										Barchasi
+					<div className='flex flex-col space-y-2 mt-4'>
+						<div className='flex items-center gap-2'>
+							<p className='text-2xl font-workSans'>Kategoriyalar bo&apos;yicha</p>
+						</div>
+						<div className='flex flex-wrap gap-2'>
+							{FILTER_CATEGORIES.map(item => (
+								<Link key={item.label} href={item.href}>
+									<DrawerClose>
+										<Badge variant={'secondary'}>{item.label}</Badge>
 									</DrawerClose>
 								</Link>
-							</div>
-							<div className='flex flex-wrap gap-2'>
-								{categories.map(item => (
-									<Link key={item.slug} href={`/categories/${item.slug}`}>
-										<DrawerClose>
-											<Badge variant={'secondary'}>{item.name}</Badge>
-										</DrawerClose>
-									</Link>
-								))}
-							</div>
+							))}
 						</div>
-					)}
+					</div>
 
 					{tags.length > 0 && (
 						<div className='flex flex-col space-y-2 mt-4'>

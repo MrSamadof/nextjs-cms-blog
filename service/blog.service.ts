@@ -136,3 +136,33 @@ export const getArchiveBlogs = async () => {
 	const results: IArchivedBlog[] = Object.values(filteredBlogs)
 	return results
 }
+
+type ArchiveBlogEntry = { id: string; title: string; slug: string; createdAt: string }
+type ArchiveGroupWithIds = { year: string; blogs: ArchiveBlogEntry[] }
+
+export const getArchiveBlogsWithIds = async (): Promise<ArchiveGroupWithIds[]> => {
+	const query = gql`
+		query MyQuery {
+			blogs(first: 1000, orderBy: createdAt_DESC) {
+				id
+				title
+				createdAt
+				slug
+			}
+		}
+	`
+
+	const { blogs } = await request<{ blogs: ArchiveBlogEntry[] }>(graphqlAPI, query)
+	const filteredBlogs = blogs.reduce(
+		(acc: { [year: string]: ArchiveGroupWithIds }, blog: ArchiveBlogEntry) => {
+			const year = blog.createdAt.substring(0, 4)
+			if (!acc[year]) {
+				acc[year] = { year, blogs: [] }
+			}
+			acc[year].blogs.push(blog)
+			return acc
+		},
+		{}
+	)
+	return Object.values(filteredBlogs)
+}
