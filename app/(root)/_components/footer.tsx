@@ -28,9 +28,6 @@ function Footer() {
               <span className='font-createRound text-base text-zinc-400'>
                 SamoDev
               </span>
-              <span className='text-green-500 animate-[blink_1s_step-end_infinite] font-createRound text-base ml-0.5'>
-                ▮
-              </span>
             </Link>
             <p className='font-workSans text-xs text-zinc-600 mt-1 max-w-[200px]'>
               Curated AI signal, no noise.

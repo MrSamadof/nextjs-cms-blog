@@ -122,7 +122,7 @@
 
 .dark {
   /* Dark mode - Yangi ranglar */
-  --background: hsl(203 86% 5%);
+  --background: hsl(240 5.9% 3.9%);
   --foreground: hsl(210 40% 98%);
   --card: hsl(203 86% 5%);
   --card-foreground: hsl(210 40% 98%);

@@ -26,11 +26,8 @@ function Navbar() {
       <div className='max-w-6xl mx-auto px-4 h-full flex items-center justify-between'>
         {/* Logo */}
         <Link href='/' className='flex items-center'>
-          <span className='font-createRound text-lg text-zinc-100'>
+          <span className='font-createRound text-lg text-zinc-100 dark:text-zinc-100'>
             SamoDev
-          </span>
-          <span className='text-green-500 animate-[blink_1s_step-end_infinite] font-createRound text-lg ml-0.5'>
-            ▮
           </span>
         </Link>
 
@@ -83,9 +80,6 @@ function Navbar() {
                   <Link href='/' className='flex items-center'>
                     <span className='font-createRound text-base text-zinc-100'>
                       SamoDev
-                    </span>
-                    <span className='text-green-500 animate-[blink_1s_step-end_infinite] font-createRound text-base ml-0.5'>
-                      ▮
                     </span>
                   </Link>
                 </div>

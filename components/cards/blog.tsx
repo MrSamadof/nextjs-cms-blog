@@ -5,8 +5,24 @@ import Link from 'next/link'
 import { cn, getReadingTime } from '@/lib/utils'
 import { format } from 'date-fns'
 
-const FALLBACK_IMAGE =
+const HYGRAPH_FALLBACK =
   'https://us-west-2.graphassets.com/cmgfe2kkj071x07n6dup74m4b/cmgpavuhj7r2907n8bedqoubp'
+
+const AI_TOOL_FALLBACKS: Record<string, string> = {
+  claude:  '/fallbacks/claude.svg',
+  gpt:     '/fallbacks/gpt.svg',
+  openai:  '/fallbacks/gpt.svg',
+  gemini:  '/fallbacks/gemini.svg',
+}
+
+function getFallbackImage(aiTool?: string | null): string {
+  if (!aiTool) return '/fallbacks/default.svg'
+  const key = aiTool.toLowerCase()
+  for (const [match, path] of Object.entries(AI_TOOL_FALLBACKS)) {
+    if (key.includes(match)) return path
+  }
+  return '/fallbacks/default.svg'
+}
 
 function getAiToolBadgeClass(tool: string): string {
   const t = tool.toLowerCase()
@@ -43,7 +59,7 @@ function BlogCard(blog: Props) {
           <div className='md:w-2/5 flex-shrink-0 overflow-hidden'>
             <div className='relative w-full h-52 md:h-full min-h-[200px]'>
               <Image
-                src={blog.image?.url ?? FALLBACK_IMAGE}
+                src={blog.image?.url ?? getFallbackImage(blog.aiTool)}
                 alt={blog.title}
                 fill
                 className='object-cover group-hover:scale-[1.02] transition-transform duration-300'
@@ -122,7 +138,7 @@ function BlogCard(blog: Props) {
         {/* Image */}
         <div className='relative w-full aspect-video overflow-hidden'>
           <Image
-            src={blog.image?.url ?? FALLBACK_IMAGE}
+            src={blog.image?.url ?? getFallbackImage(blog.aiTool)}
             alt={blog.title}
             fill
             className='object-cover group-hover:scale-[1.02] transition-transform duration-300'
