@@ -22,7 +22,7 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://test-blog.sammi.ac'),
-  title: "Hozircha test uchun qilinyotgan blog sayt",
+  title: "AI News — SamoDev",
   description: "Inshaa Alloh yaxshiliklarga ishlatamiz",
   authors: [{name: 'Odilbek Samadof', url: "/?"}],
   icons: {icon: '/bebo-logo.png'},
