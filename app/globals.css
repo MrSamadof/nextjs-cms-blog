@@ -2,15 +2,17 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  /* ... mavjud sozlamalar ... */
-  
-  /* Fontlarni qo'shing */
-  --font-createRound: var(--font-createRound);
-  --font-workSans: var(--font-workSans);
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@custom-variant dark (&:is(.dark *));
 
 @layer utilities {
   .container {

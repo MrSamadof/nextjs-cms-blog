@@ -1,47 +1,37 @@
 export const dynamic = 'force-dynamic'
 
-import BlogCard from '@/components/cards/blog'
 import { getBlogs } from '@/service/blog.service'
-import { Dot, Home } from 'lucide-react'
 import { Metadata } from 'next'
-import Link from 'next/link'
+import BlogFeed from '../(home)/_components/blog-feed'
 
-export const metadata: Metadata ={
-	title: 'All blogs'
+export const metadata: Metadata = {
+	title: 'Barcha postlar — SamoDev'
 }
 
- async function Blogspage() {
-
+async function BlogsPage() {
 	const blogs = await getBlogs()
 
 	return (
-		<div className='max-w-6xl mx-auto'>
-			
-			<div className='relative min-h-[40vh] flex items-center justify-center flex-col'>
-			<h2 className='text-center text-4xl section-title font-createRound'>
-				<span>Blogs</span>
-			</h2>
-			<div className='flex gap-1 items-center mt-4'>
-				<Home className='w-4 h-4'/>
-				<Link
-				href={'/'}
-				className='opacity-90 hover:underline hover:opacity-100'>
-					Home
-				</Link>
-				<Dot/>
-				<p className='text-muted-foreground'>Blogs</p>
+		<div className='min-h-screen bg-zinc-950'>
+			<div className='max-w-6xl mx-auto px-4 pt-20 pb-24'>
+				{/* Header */}
+				<div className='mb-8'>
+					<p className='font-mono text-xs text-zinc-600 uppercase tracking-widest mb-2'>
+						/ barcha postlar
+					</p>
+					<h1 className='font-createRound text-3xl md:text-4xl text-zinc-100'>
+						Signal Feed
+					</h1>
+					<p className='font-workSans text-sm text-zinc-500 mt-2'>
+						{blogs.length} ta post · AI, avtomatlashtirish va dasturlash bo&apos;yicha
+					</p>
+				</div>
 
+				{/* Feed */}
+				<BlogFeed blogs={blogs} />
 			</div>
-
-		</div>
-					<div className=' grid grid-cols-2 max-md:grid-cols-1 gap-x-1 gap-y-24  mt-24'>
-				{blogs.map(blog =>(
-					<BlogCard key={blog.title} {...blog} isVertical/>
-				))}
-			</div>
-
 		</div>
 	)
 }
 
-export default Blogspage
+export default BlogsPage

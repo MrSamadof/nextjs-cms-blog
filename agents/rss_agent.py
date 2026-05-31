@@ -165,7 +165,9 @@ Return exactly this structure:
   "actionSuggestion": "<1-2 sentence actionable suggestion in Uzbek>",
   "aiTool": "<Claude | GPT | Gemini | Other>",
   "categoryName": "<exact category name from the list above, or null>",
-  "tagNames": ["<exact tag name>", ...]
+  "tagNames": ["<exact tag name>", ...],
+  "relevanceScore": <1-10>,
+  "isRelevant": <true | false>
 }}
 
 Rules:
@@ -175,6 +177,15 @@ Rules:
 - aiTool: Claude = Anthropic content, GPT = OpenAI/ChatGPT content, Gemini = Google content, Other = anything else
 - categoryName: only use a name from the provided list; null if no category fits
 - tagNames: only use names from the provided list; empty array [] if none fit; max 3
+- relevanceScore: 1-10 based on how relevant the article is to these specific domains:
+    RELEVANT (score 6-10): AI engineering, AI agents, automation, workflow automation,
+    systematization, coding tools, developer tools, programming frameworks, AI model
+    releases with technical depth, AI learning resources, prompt engineering, AI pipelines,
+    LLMs, RAG, fine-tuning, MLOps, AI APIs, open-source AI tools.
+    NOT RELEVANT (score 1-5): business deals, company valuations, investments, mergers,
+    AI regulation/policy/law, social controversies, entertainment AI (art/music/movies),
+    general consumer features, marketing announcements without technical substance.
+- isRelevant: true if relevanceScore >= 6, false otherwise
 """
 
     meta_msg = client.messages.create(
@@ -372,6 +383,13 @@ def process_feed(feed_url: str, categories: list, tags: list):
             print(f"  Claude error: {e}")
             continue
 
+        relevance_score = analysis.get("relevanceScore", 5)
+        is_relevant = analysis.get("isRelevant", True)
+        if not is_relevant:
+            print(f"  Skipping (not relevant, score={relevance_score}): {title[:70]}")
+            continue
+
+        print(f"  Relevance score: {relevance_score}/10 — proceeding")
         slug = generate_slug(analysis.get("titleUz", title))
 
         content_html = analysis.get("contentHtml", "")
