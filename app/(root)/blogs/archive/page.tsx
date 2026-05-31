@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 import { getArchiveBlogsWithIds } from '@/service/blog.service'
 import { Metadata } from 'next'

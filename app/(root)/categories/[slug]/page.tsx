@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 import BlogCard from '@/components/cards/blog'
 import { getBlogsByCategory } from '@/service/category.service'
 import { Dot, Home } from 'lucide-react'

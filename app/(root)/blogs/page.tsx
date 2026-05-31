@@ -1,5 +1,5 @@
 // FILE: app/(root)/blogs/page.tsx
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 import { getBlogs } from '@/service/blog.service'
 import { Metadata } from 'next'

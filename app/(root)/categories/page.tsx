@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 import CategoriesTagsCard from '@/components/cards/categories-tags'
 import { getCategories } from '@/service/category.service'

@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 import BlogCard from '@/components/cards/blog'
 import { getBlogsByTag } from '@/service/tag.service'
 import { Dot, Home } from 'lucide-react'

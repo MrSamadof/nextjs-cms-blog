@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 import BlogCard from '@/components/cards/blog'
 import { getDetaileddAuthor } from '@/service/author.service'
 import Image from 'next/image'

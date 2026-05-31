@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 // FILE: app/(root)/blogs/[slug]/page.tsx
 import { getReadingTime } from '@/lib/utils'
 import { getDetailedBlog } from '@/service/blog.service'
