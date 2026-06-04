@@ -27,7 +27,7 @@ async function Page({ params }: PageProps) {
 	return (
 		<div className='max-w-6xl mx-auto'>
 			<div className='relative min-h-[40vh] flex items-center justify-end flex-col'>
-				<h2 className='text-center text-4xl section-title font-creteRound mt-2'>
+				<h2 className='text-center text-3xl md:text-4xl section-title font-createRound mt-2'>
 					<span>{tag.name}</span>
 				</h2>
 
@@ -45,7 +45,7 @@ async function Page({ params }: PageProps) {
 			</div>
 
 
-					<div className=' grid grid-cols-2 max-md:grid-cols-1 gap-x-1 gap-y-24  mt-24'>
+					<div className=' grid grid-cols-2 max-md:grid-cols-1 gap-x-6 gap-y-12 md:gap-y-24 mt-12 md:mt-24'>
 				{tag.blogs.map(blog =>(
 					<BlogCard key={blog.title} {...blog} isVertical/>
 				))}

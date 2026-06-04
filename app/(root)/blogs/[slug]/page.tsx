@@ -138,6 +138,8 @@ async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
               'prose-code:bg-gray-100 prose-code:text-green-700 prose-code:dark:bg-zinc-800 prose-code:dark:text-green-300 prose-code:rounded prose-code:px-1 prose-code:before:content-none prose-code:after:content-none',
               'prose-a:text-green-600 dark:prose-a:text-green-400 prose-a:no-underline hover:prose-a:underline',
               'prose-blockquote:border-l-2 prose-blockquote:border-gray-300 dark:prose-blockquote:border-zinc-700 prose-blockquote:not-italic',
+              'prose-table:block prose-table:overflow-x-auto prose-table:w-full prose-table:whitespace-nowrap',
+              'prose-pre:overflow-x-auto',
             ].join(' ')}
           >
             {parse(blog.content?.html ?? '')}

@@ -102,12 +102,12 @@ export default function BlogFeed({ blogs }: Props) {
       ) : (
         <div className='grid md:grid-cols-2 gap-6 mt-6'>
           {highBlogs.map((blog) => (
-            <div key={blog.slug} className='col-span-2'>
+            <div key={blog.slug} className='md:col-span-2'>
               <BlogCard {...blog} />
             </div>
           ))}
           {restBlogs.map((blog) => (
-            <div key={blog.slug} className='col-span-1'>
+            <div key={blog.slug} className='md:col-span-1'>
               <BlogCard {...blog} />
             </div>
           ))}

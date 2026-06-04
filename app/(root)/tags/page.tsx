@@ -17,7 +17,7 @@ async function Page() {
 	return (
 		<div className='max-w-6xl mx-auto'>
 			<div className='relative min-h-[40vh] flex items-center justify-end flex-col'>
-				<h2 className='text-center text-4xl section-title font-creteRound mt-2'>
+				<h2 className='text-center text-4xl section-title font-createRound mt-2'>
 					<span>Tags</span>
 				</h2>
 
@@ -35,7 +35,7 @@ async function Page() {
 			</div>
 
 
-					<div className=' grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-24 gap-4 '>
+					<div className=' grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-12 md:mt-24 gap-4 '>
 					{tags.map(item=> <CategoriesTagsCard key={item.slug} {...item} type='tags'/>)}
 			</div>
 		</div>

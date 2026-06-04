@@ -67,7 +67,7 @@ function BlogCard(blog: Props) {
           </div>
 
           {/* Content — right side */}
-          <div className='flex flex-col gap-3 p-5 flex-1'>
+          <div className='flex flex-col gap-3 p-5 flex-1 min-w-0'>
             {/* TOP ROW: HIGH badge + AI tool badge */}
             <div className='flex flex-wrap items-center gap-2'>
               <span className='font-mono text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 px-2 py-0.5 rounded'>
@@ -81,7 +81,7 @@ function BlogCard(blog: Props) {
             </div>
 
             {/* Title */}
-            <h2 className='font-createRound text-2xl text-gray-900 dark:text-zinc-100 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors leading-snug'>
+            <h2 className='font-createRound text-2xl text-gray-900 dark:text-zinc-100 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors leading-snug break-words'>
               {blog.title}
             </h2>
 
@@ -160,7 +160,7 @@ function BlogCard(blog: Props) {
           </div>
 
           {/* Title */}
-          <h2 className='font-createRound text-xl text-gray-900 dark:text-zinc-100 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors leading-snug'>
+          <h2 className='font-createRound text-xl text-gray-900 dark:text-zinc-100 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors leading-snug break-words'>
             {blog.title}
           </h2>
 

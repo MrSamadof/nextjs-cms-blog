@@ -101,7 +101,7 @@ function Globalsearch() {
 							{blogs.length} ta natija topildi.
 						</div>
 					) : null}
-					<div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 mt-2'>
+					<div className='grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-2'>
 						{blogs.map(blog => (
 							<div key={blog.slug} onClick={() => setOpen(false)}>
 								<SearchCard {...blog} />

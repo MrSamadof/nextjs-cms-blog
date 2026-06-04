@@ -48,11 +48,11 @@ export default async function HomePage() {
   return (
     <div className='min-h-screen'>
       {/* ── Hero ────────────────────────────────────── */}
-      <section className='max-w-6xl mx-auto px-4 pt-24 pb-12 min-h-[40dvh] flex items-center'>
+      <section className='max-w-6xl mx-auto px-4 pt-16 md:pt-24 pb-12 min-h-[40dvh] flex items-center'>
         <div className='flex flex-col md:flex-row md:items-start md:justify-between gap-10 w-full'>
           {/* Left — headline + CTAs */}
           <div className='flex flex-col gap-5 max-w-xl'>
-            <h1 className='font-createRound text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-zinc-100 leading-tight'>
+            <h1 className='font-createRound text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-zinc-900 dark:text-zinc-100 leading-tight'>
               SamoDev
             </h1>
             <p className='font-mono text-gray-500 dark:text-zinc-500 text-base tracking-widest uppercase'>

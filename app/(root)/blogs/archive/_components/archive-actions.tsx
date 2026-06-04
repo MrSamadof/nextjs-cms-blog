@@ -46,7 +46,7 @@ export default function ArchiveActions({ groups }: ArchiveActionsProps) {
 								<span className='text-zinc-300 dark:text-zinc-700 select-none'>·</span>
 								<Link
 									href={`/blogs/${item.slug}`}
-									className='font-workSans text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline transition-colors'
+									className='font-workSans text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline transition-colors min-w-0 break-words'
 								>
 									{item.title}
 								</Link>

@@ -14,7 +14,7 @@ function SearchCard(blog: IBlog) {
 			height={200}
 			src={blog.image?.url ?? 'https://us-west-2.graphassets.com/cmgfe2kkj071x07n6dup74m4b/cmgpavuhj7r2907n8bedqoubp'}
 			alt={blog.title}
-			className='rounded-md shadow-xl dark:shadow-white/10'
+			className='w-full h-auto aspect-video object-cover rounded-md shadow-xl dark:shadow-white/10'
 			/>
 			<div className='flex items-center gap-2'>
 				<CalendarDays className='w-4 h-4'/>
