@@ -3,8 +3,8 @@ import re
 import json
 import hashlib
 import time
+import random
 
-import feedparser
 import anthropic
 import requests
 from dotenv import load_dotenv
@@ -14,16 +14,33 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env.loca
 GRAPHCMS_ENDPOINT = os.getenv("NEXT_PUBLIC_GRAPHCMS_ENDPOINT")
 HYGRAPH_WRITE_TOKEN = os.getenv("HYGRAPH_WRITE_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 AUTHOR_ID = "cmppeedszsn6207myqv1mni6i"       # SamoDev AI author node
 DEFAULT_IMAGE_ID = "cmgpavuhj7r2807n8a5hpt1dh"  # default blog cover asset
 
-RSS_FEEDS = [
-    "https://www.anthropic.com/rss.xml",
-    "https://openai.com/blog/rss.xml",
-    "https://huggingface.co/blog/feed.xml",
-    "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+# --- Tavily Search Configuration ---
+# Har bir ishga tushganda 3 ta random query tanlaydi
+SEARCH_QUERIES = [
+    "latest AI breakthroughs and research 2026",
+    "new AI tools and frameworks for developers",
+    "LLM tutorials and learning resources",
+    "AI agents and automation workflows",
+    "open source AI models released this week",
+    "prompt engineering best practices and tips",
+    "RAG retrieval augmented generation tutorials",
+    "AI coding assistants and developer tools",
+    "machine learning engineering best practices",
+    "artificial intelligence practical applications",
+    "fine-tuning LLM models guide",
+    "AI workflow automation tools new release",
 ]
+
+# Har safar nechta query ishlatish
+QUERIES_PER_RUN = 3
+
+# Har bir query dan nechta natija olish
+RESULTS_PER_QUERY = 5
 
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -35,6 +52,67 @@ BROWSER_HEADERS = {
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
+
+# ============================================================
+# Tavily Search
+# ============================================================
+
+def search_tavily(query: str, max_results: int = 5) -> list:
+    """Tavily API orqali veb qidiruv. Natijalar ro'yxati qaytadi."""
+    print(f"  Tavily search: {query}")
+    try:
+        response = requests.post(
+            "https://api.tavily.com/search",
+            json={
+                "api_key": TAVILY_API_KEY,
+                "query": query,
+                "search_depth": "advanced",
+                "max_results": max_results,
+                "include_answer": False,
+                "include_raw_content": False,
+                "days": 3,  # Oxirgi 3 kun ichidagi natijalar
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        data = response.json()
+        results = data.get("results", [])
+        print(f"    {len(results)} ta natija topildi")
+        return results
+    except Exception as e:
+        print(f"    Tavily xatosi: {e}")
+        return []
+
+
+def collect_search_results() -> list:
+    """Barcha querylar bo'yicha qidiruv natijalarini yig'adi va duplikatlarni olib tashlaydi."""
+    selected_queries = random.sample(SEARCH_QUERIES, min(QUERIES_PER_RUN, len(SEARCH_QUERIES)))
+    print(f"\nTanlangan querylar: {selected_queries}")
+
+    all_results = []
+    seen_urls = set()
+
+    for query in selected_queries:
+        results = search_tavily(query, max_results=RESULTS_PER_QUERY)
+        for r in results:
+            url = r.get("url", "")
+            if url and url not in seen_urls:
+                seen_urls.add(url)
+                all_results.append({
+                    "title": r.get("title", ""),
+                    "url": url,
+                    "content": r.get("content", ""),  # Tavily snippet
+                    "score": r.get("score", 0),
+                })
+        time.sleep(1)  # Rate limiting
+
+    print(f"\nJami {len(all_results)} ta unikal natija yig'ildi")
+    return all_results
+
+
+# ============================================================
+# Hygraph Helpers (o'zgarishsiz saqlanadi)
+# ============================================================
 
 def fetch_categories() -> list:
     query = "{ categories { id name slug } }"
@@ -79,11 +157,12 @@ def strip_html(text: str) -> str:
 
 
 def fetch_article_text(url: str) -> str:
+    """Maqola sahifasidan matnni oladi (scraping)."""
     try:
         response = requests.get(url, headers=BROWSER_HEADERS, timeout=15)
         response.raise_for_status()
         html = response.text
-        # Remove noisy blocks before stripping tags
+        # Keraksiz bloklar uchun tozalash
         html = re.sub(
             r"<(script|style|nav|footer|header|aside|noscript)[^>]*>.*?</(script|style|nav|footer|header|aside|noscript)>",
             " ", html, flags=re.DOTALL | re.IGNORECASE,
@@ -131,6 +210,10 @@ def html_to_richtext_ast(html: str) -> dict:
 
     return {"children": nodes}
 
+
+# ============================================================
+# Claude Analysis
+# ============================================================
 
 def analyze_article(title: str, full_text: str, categories: list, tags: list) -> dict:
     category_names = [c["name"] for c in categories]
@@ -217,6 +300,10 @@ Start directly with the first tag.
     result["contentHtml"] = content_msg.content[0].text.strip()
     return result
 
+
+# ============================================================
+# Hygraph Operations
+# ============================================================
 
 def check_exists(source_url: str) -> bool:
     print(f"  Checking: {source_url}")
@@ -343,40 +430,48 @@ def send_to_hygraph(article: dict) -> dict:
     return response.json()
 
 
-def process_feed(feed_url: str, categories: list, tags: list):
-    print(f"\nFetching: {feed_url}")
-    feed = feedparser.parse(feed_url)
+# ============================================================
+# Main: Search → Filter → Publish
+# ============================================================
 
-    if feed.bozo:
-        print(f"  Warning: {feed.bozo_exception}")
+def process_search_results(search_results: list, categories: list, tags: list):
+    """Qidiruv natijalarini Claude bilan tahlil qiladi va Hygraph'ga yuklaydi."""
+    published_count = 0
+    max_posts_per_run = 3  # Har bir ishga tushishda maksimal postlar soni
 
-    entries = feed.entries[:5]
-    print(f"  {len(entries)} entries found")
+    for idx, result in enumerate(search_results, 1):
+        if published_count >= max_posts_per_run:
+            print(f"\n  Maksimal post soni ({max_posts_per_run}) ga yetdi. To'xtatildi.")
+            break
 
-    for entry in entries:
-        title = entry.get("title", "").strip()
-        source_url = entry.get("link", "").strip()
+        title = result["title"]
+        source_url = result["url"]
+        snippet = result["content"]
 
-        if not title or not source_url:
-            print("  Skipping: missing title or URL")
-            continue
+        print(f"\n--- [{idx}/{len(search_results)}] {title[:70]}... ---")
 
+        # Avval Hygraph'da mavjudligini tekshirish
         time.sleep(1)
         if check_exists(source_url):
-            print(f"  Skipping (already exists): {title}")
+            print(f"  Skipping (already exists): {title[:70]}")
             continue
 
-        print(f"  Fetching article: {title[:70]}...")
+        # Maqola to'liq matnini olish (scraping)
+        print(f"  Fetching full article text...")
         time.sleep(1)
         full_text = fetch_article_text(source_url)
         if not full_text:
-            # Fall back to RSS description if fetch fails
-            full_text = strip_html(entry.get("summary", entry.get("description", ""))).strip()
+            # Tavily snippet-dan foydalanish
+            full_text = snippet
         if len(full_text) > 3000:
             full_text = full_text[:3000] + "..."
 
-        print(f"  Analyzing: {title[:70]}...")
+        if not full_text.strip():
+            print(f"  Skipping (no text): {title[:70]}")
+            continue
 
+        # Claude tahlili
+        print(f"  Analyzing with Claude...")
         try:
             analysis = analyze_article(title, full_text, categories, tags)
         except Exception as e:
@@ -454,25 +549,50 @@ def process_feed(feed_url: str, categories: list, tags: list):
                     time.sleep(1)
                     publish_blog(blog_id)
                     print(f"  Published: id={blog_id}")
+                    published_count += 1
         except Exception as e:
             print(f"  Hygraph request error: {e}")
 
+    print(f"\n  Jami {published_count} ta post chop etildi.")
+
 
 def main():
-    print("RSS Agent starting...")
-    if not all([GRAPHCMS_ENDPOINT, HYGRAPH_WRITE_TOKEN, ANTHROPIC_API_KEY]):
-        raise EnvironmentError("Missing one or more required environment variables.")
+    print("=" * 60)
+    print("Deep Search Agent starting...")
+    print("=" * 60)
 
+    if not all([GRAPHCMS_ENDPOINT, HYGRAPH_WRITE_TOKEN, ANTHROPIC_API_KEY, TAVILY_API_KEY]):
+        raise EnvironmentError(
+            "Missing one or more required environment variables: "
+            "NEXT_PUBLIC_GRAPHCMS_ENDPOINT, HYGRAPH_WRITE_TOKEN, ANTHROPIC_API_KEY, TAVILY_API_KEY"
+        )
+
+    # 1. Hygraph'dan kategoriyalar va taglarni olish
     categories = fetch_categories()
     print(f"Loaded {len(categories)} categories: {[c['name'] for c in categories]}")
 
     tags = fetch_tags()
     print(f"Loaded {len(tags)} tags: {[t['name'] for t in tags]}")
 
-    for feed_url in RSS_FEEDS:
-        process_feed(feed_url, categories, tags)
+    # 2. Tavily orqali qidiruv
+    print("\n" + "=" * 60)
+    print("Tavily Deep Search boshlandi...")
+    print("=" * 60)
+    search_results = collect_search_results()
 
-    print("\nDone.")
+    if not search_results:
+        print("\nHech qanday natija topilmadi. Tugatildi.")
+        return
+
+    # 3. Natijalarni tahlil qilish va publish qilish
+    print("\n" + "=" * 60)
+    print("Natijalarni tahlil qilish va publish qilish...")
+    print("=" * 60)
+    process_search_results(search_results, categories, tags)
+
+    print("\n" + "=" * 60)
+    print("Deep Search Agent tugatildi.")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

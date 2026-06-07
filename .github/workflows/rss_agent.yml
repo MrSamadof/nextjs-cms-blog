@@ -1,7 +1,11 @@
-name: RSS Agent
+name: Deep Search Agent
 on:
   schedule:
-    - cron: '0 6 * * *'
+    # Kuniga 3 marta: UTC 04:00, 12:00, 20:00
+    # (Toshkent vaqti: 09:00, 17:00, 01:00)
+    - cron: '0 4 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 20 * * *'
   workflow_dispatch:
 
 jobs:
@@ -13,10 +17,11 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install feedparser anthropic requests python-dotenv
-      - name: Run RSS Agent
+        run: pip install anthropic requests python-dotenv
+      - name: Run Deep Search Agent
         env:
           NEXT_PUBLIC_GRAPHCMS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_GRAPHCMS_ENDPOINT }}
           HYGRAPH_WRITE_TOKEN: ${{ secrets.HYGRAPH_WRITE_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         run: python agents/rss_agent.py
